@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 255 255 255;
+    --foreground: 26 26 46;
+    --card: 255 255 255;
+    --card-foreground: 26 26 46;
+    --popover: 255 255 255;
+    --popover-foreground: 26 26 46;
+    --primary: 38 44 87;
+    --primary-foreground: 255 255 255;
+    --primary-dark: 22 28 65;
+    --secondary: 60 148 212;
+    --secondary-foreground: 255 255 255;
+    --secondary-dark: 30 100 165;
+    --muted: 240 244 255;
+    --muted-foreground: 74 85 104;
+    --muted-dark: 214 220 240;
+    --accent: 60 148 212;
+    --accent-foreground: 255 255 255;
+    --accent-dark: 30 100 165;
+    --destructive: 229 62 62;
+    --destructive-foreground: 255 255 255;
+    --destructive-dark: 165 35 35;
+    --success: 34 197 94;
+    --success-foreground: 255 255 255;
+    --success-dark: 21 128 61;
+    --border: 226 232 240;
+    --border-dark: 199 210 224;
+    --input: 226 232 240;
+    --ring: 38 44 87;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 20 22 39;
+    --foreground: 247 250 252;
+    --card: 28 32 54;
+    --card-foreground: 247 250 252;
+    --popover: 28 32 54;
+    --popover-foreground: 247 250 252;
+    --primary: 86 168 232;
+    --primary-foreground: 255 255 255;
+    --primary-dark: 40 112 178;
+    --secondary: 38 44 87;
+    --secondary-foreground: 247 250 252;
+    --secondary-dark: 22 28 65;
+    --muted: 38 44 77;
+    --muted-foreground: 148 163 196;
+    --muted-dark: 24 28 55;
+    --accent: 60 148 212;
+    --accent-foreground: 255 255 255;
+    --accent-dark: 30 100 165;
+    --destructive: 220 60 60;
+    --destructive-foreground: 255 255 255;
+    --destructive-dark: 140 30 30;
+    --success: 34 197 94;
+    --success-foreground: 255 255 255;
+    --success-dark: 15 110 50;
+    --border: 48 56 96;
+    --border-dark: 30 36 68;
+    --input: 48 56 96;
+    --ring: 86 168 232;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+.duo-card {
+  @apply rounded-duo border-2 border-border bg-card text-card-foreground shadow-duo;
+}
+
+.duo-btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-duo font-bold transition-all duration-100 active:translate-y-[2px] active:shadow-none disabled:opacity-50 disabled:pointer-events-none select-none;
+}
+
+.duo-btn-primary {
+  @apply duo-btn bg-primary text-primary-foreground border-2 border-primary-dark shadow-duo-primary hover:brightness-110;
+}
+
+.duo-btn-purple {
+  @apply duo-btn bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-b-4 border-purple-900 shadow-lg;
+}
+
+.duo-btn-outline {
+  @apply duo-btn bg-card text-foreground border-2 border-border shadow-duo-sm hover:bg-muted/70;
+}
+
+.duo-btn-danger {
+  @apply duo-btn bg-destructive text-destructive-foreground border-2 border-destructive-dark shadow-duo-destructive hover:brightness-110;
+}
