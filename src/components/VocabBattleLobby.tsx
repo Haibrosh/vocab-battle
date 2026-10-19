@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Bot,
   CircleX,
   Clock,
+  Download,
   FilePlus2,
   Flame,
+  Globe,
   Handshake,
   Layers,
   Loader2,
   LogIn,
+  Search,
   Sparkles,
   Swords,
   Trophy,
@@ -16,12 +19,18 @@ import {
   X,
 } from 'lucide-react';
 import {
-  BUILTIN_VOCAB_CARDS,
   DECK_LIST,
+  getDeckCardCount,
   parseCustomVocabulary,
+  TOTAL_PARROTO_CARDS,
 } from '../data/vocabDecks';
 import { DeckId, PlayerStats, RoomConfig, VocabCard } from '../types/game';
 import { Locale, TRANSLATIONS } from '../i18n/translations';
+import {
+  fetchParrotoDeckCards,
+  ParrotoCommunityDeck,
+  searchParrotoCommunityDecks,
+} from '../utils/parrotoApi';
 
 interface VocabBattleLobbyProps {
   locale: Locale;
@@ -41,6 +50,20 @@ interface VocabBattleLobbyProps {
 const ROUND_OPTIONS = [5, 10, 15, 20, 30];
 const TIME_OPTIONS = [15, 20, 30, 45, 60];
 
+type DeckFilterCategory = 'all' | 'core' | 'oxford' | 'ielts' | 'exam';
+
+const CATEGORY_MAP: Record<Exclude<DeckFilterCategory, 'all'>, DeckId[]> = {
+  core: ['all', 'common-1000', 'conversation', 'lunar-new-year', 'custom'],
+  oxford: [
+    'oxford-3000-a1',
+    'oxford-3000-a2',
+    'oxford-b1-b2',
+    'oxford-c1-c2',
+  ],
+  ielts: ['ielts-600', 'ielts-band-4-5', 'ielts-advanced', 'toefl-essential'],
+  exam: ['toeic-600', 'ets-toeic', 'thpt-qg', 'sat-c1-c2'],
+};
+
 export const VocabBattleLobby: React.FC<VocabBattleLobbyProps> = ({
   locale,
   currentUser,
@@ -57,14 +80,66 @@ export const VocabBattleLobby: React.FC<VocabBattleLobbyProps> = ({
 }) => {
   const t = TRANSLATIONS[locale];
   const [joinCode, setJoinCode] = useState('');
+  const [deckCategory, setDeckCategory] = useState<DeckFilterCategory>('all');
   const [customModalOpen, setCustomModalOpen] = useState(false);
+  const [modalTab, setModalTab] = useState<'community' | 'manual'>('community');
   const [draftCustomText, setDraftCustomText] = useState(rawCustomText);
 
-  const getDeckCardCount = (id: DeckId) => {
-    if (id === 'all') return BUILTIN_VOCAB_CARDS.length + customCards.length;
-    if (id === 'custom') return customCards.length;
-    return BUILTIN_VOCAB_CARDS.filter((c) => c.deckId === id).length;
+  // Parroto Community Deck Browser State
+  const [commSearch, setCommSearch] = useState('');
+  const [commDecks, setCommDecks] = useState<ParrotoCommunityDeck[]>([]);
+  const [commTotal, setCommTotal] = useState<number>(3593);
+  const [commLoading, setCommLoading] = useState(false);
+  const [importingDeckId, setImportingDeckId] = useState<string | null>(null);
+  const [importedDeckName, setImportedDeckName] = useState<string | null>(null);
+
+  const loadCommunityDecks = async (q: string) => {
+    setCommLoading(true);
+    try {
+      const res = await searchParrotoCommunityDecks(q, 1, 24);
+      setCommDecks(res.decks);
+      setCommTotal(res.total);
+    } catch {
+      // Ignore network errors silently
+    } finally {
+      setCommLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (customModalOpen && modalTab === 'community' && commDecks.length === 0) {
+      void loadCommunityDecks('');
+    }
+  }, [customModalOpen, modalTab, commDecks.length]);
+
+  const handleImportCommunityDeck = async (deck: ParrotoCommunityDeck) => {
+    setImportingDeckId(deck._id);
+    try {
+      const cards = await fetchParrotoDeckCards(deck._id);
+      if (cards.length > 0) {
+        const serialized = cards
+          .map(
+            (c) =>
+              `${c.word} | ${c.translation.vi} | ${c.explanation.vi} | ${c.exampleMasked.en}`
+          )
+          .join('\n');
+        onSaveCustomText(serialized, cards);
+        setDraftCustomText(serialized);
+        setImportedDeckName(`${deck.name} (${cards.length} từ)`);
+        onUpdateConfig({ deckId: 'custom' });
+        setCustomModalOpen(false);
+      }
+    } catch {
+      // Ignore error
+    } finally {
+      setImportingDeckId(null);
+    }
+  };
+
+  const filteredDecks =
+    deckCategory === 'all'
+      ? DECK_LIST
+      : DECK_LIST.filter((d) => CATEGORY_MAP[deckCategory].includes(d.id));
 
   const handleJoinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -226,7 +301,7 @@ export const VocabBattleLobby: React.FC<VocabBattleLobbyProps> = ({
                     {t.lobby.createRoomTitle}
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    Tuỳ chỉnh bộ từ vựng, số vòng và thời gian trước khi bắt đầu
+                    Kho <b className="text-purple-600">{TOTAL_PARROTO_CARDS.toLocaleString()}</b> từ vựng Parroto chính gốc + 3,500+ bộ từ cộng đồng
                   </p>
                 </div>
               </div>
@@ -237,26 +312,57 @@ export const VocabBattleLobby: React.FC<VocabBattleLobbyProps> = ({
                   setDraftCustomText(rawCustomText);
                   setCustomModalOpen(true);
                 }}
-                className="duo-btn-outline px-3 py-1.5 text-xs"
+                className="duo-btn-outline px-3 py-1.5 text-xs border-purple-400/60 hover:bg-purple-500/10"
               >
-                <FilePlus2 className="h-3.5 w-3.5 text-purple-600" />
+                <Globe className="h-3.5 w-3.5 text-purple-600" />
                 <span>
-                  {t.lobby.customDeckBtn} ({customCards.length})
+                  Kho Cộng Đồng & Tự Nhập ({customCards.length.toLocaleString()})
                 </span>
               </button>
             </div>
 
-            {/* 1. Deck Selection */}
-            <div className="space-y-2.5">
-              <label className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-                <Layers className="h-4 w-4 text-purple-600" />
-                <span>{t.lobby.deckLabel}</span>
-              </label>
+            {/* 1. Deck Selection (17 Decks, 15,397+ words) */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <label className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+                  <Layers className="h-4 w-4 text-purple-600" />
+                  <span>
+                    {t.lobby.deckLabel} ({DECK_LIST.length} bộ ·{' '}
+                    {TOTAL_PARROTO_CARDS.toLocaleString()} từ)
+                  </span>
+                </label>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {DECK_LIST.map((deck) => {
+                {/* Category Filter Pills */}
+                <div className="flex flex-wrap gap-1">
+                  {[
+                    { id: 'all', label: 'Tất cả (17)' },
+                    { id: 'core', label: 'Thông dụng' },
+                    { id: 'oxford', label: 'Oxford 3000/5000' },
+                    { id: 'ielts', label: 'IELTS & TOEFL' },
+                    { id: 'exam', label: 'TOEIC · THPT · SAT' },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() =>
+                        setDeckCategory(cat.id as DeckFilterCategory)
+                      }
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
+                        deckCategory === cat.id
+                          ? 'bg-purple-600 text-white shadow-xs'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[340px] overflow-y-auto pr-1">
+                {filteredDecks.map((deck) => {
                   const selected = roomConfig.deckId === deck.id;
-                  const count = getDeckCardCount(deck.id);
+                  const count = getDeckCardCount(deck.id, customCards);
                   return (
                     <button
                       key={deck.id}
@@ -275,17 +381,24 @@ export const VocabBattleLobby: React.FC<VocabBattleLobbyProps> = ({
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2 w-full">
-                        <span className="font-bold text-sm truncate">
-                          {locale === 'vi' ? deck.nameVi : deck.nameEn}
+                        <span className="font-bold text-sm truncate flex items-center gap-1.5">
+                          <span>{deck.icon}</span>
+                          <span className="truncate">
+                            {locale === 'vi' ? deck.nameVi : deck.nameEn}
+                          </span>
                         </span>
                         <span
                           className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full text-white bg-gradient-to-r ${deck.color} shrink-0`}
                         >
-                          {deck.badge} · {count} từ
+                          {deck.badge} · {count.toLocaleString()} từ
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-1">
-                        {locale === 'vi' ? deck.descVi : deck.descEn}
+                        {deck.id === 'custom' && importedDeckName
+                          ? `Đang dùng: ${importedDeckName}`
+                          : locale === 'vi'
+                            ? deck.descVi
+                            : deck.descEn}
                       </p>
                     </button>
                   );
@@ -382,14 +495,16 @@ export const VocabBattleLobby: React.FC<VocabBattleLobbyProps> = ({
         </div>
       </div>
 
-      {/* Custom Vocabulary Modal */}
+      {/* Custom & Parroto Community Vocabulary Modal */}
       {customModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
-          <div className="duo-card w-full max-w-2xl rounded-duo-lg p-6 space-y-4 max-h-[90vh] flex flex-col">
+          <div className="duo-card w-full max-w-3xl rounded-duo-lg p-6 space-y-4 max-h-[90vh] flex flex-col">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 font-extrabold text-base">
-                <FilePlus2 className="h-5 w-5 text-purple-600" />
-                <span>Nhập Danh Sách Từ Vựng Riêng (Custom Deck)</span>
+                <Globe className="h-5 w-5 text-purple-600" />
+                <span>
+                  Mở Rộng Kho Từ Vựng (Cộng Đồng Parroto & Tự Nhập)
+                </span>
               </div>
               <button
                 type="button"
@@ -400,54 +515,200 @@ export const VocabBattleLobby: React.FC<VocabBattleLobbyProps> = ({
               </button>
             </div>
 
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Mỗi dòng nhập 1 từ theo định dạng:{' '}
-              <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">
-                từ_tiếng_Anh | nghĩa_tiếng_Việt | giải_thích | câu_ví_dụ
-              </code>{' '}
-              (2 cột cuối không bắt buộc). Khi bạn tạo phòng với bộ từ này, bạn
-              bè vào phòng sẽ tự động đồng bộ danh sách từ của bạn!
-            </p>
-
-            <textarea
-              value={draftCustomText}
-              onChange={(e) => setDraftCustomText(e.target.value)}
-              rows={9}
-              placeholder={`resilient | kiên cường, phục hồi nhanh | Có khả năng bật dậy sau khó khăn | She is a very resilient athlete.\nnegotiate | đàm phán, thương lượng | Thảo luận để đạt thỏa thuận | We need to negotiate a better price.`}
-              className="w-full rounded-duo border-2 border-border bg-muted/30 p-3.5 font-mono text-xs focus:border-purple-600 focus:outline-none flex-1"
-            />
-
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-xs font-semibold text-muted-foreground">
-                Đã nhận diện:{' '}
-                <b className="text-purple-600">
-                  {parseCustomVocabulary(draftCustomText).length}
-                </b>{' '}
-                từ hợp lệ
-              </span>
-
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCustomModalOpen(false)}
-                  className="duo-btn-outline px-4 py-2 text-xs"
-                >
-                  Đóng
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const parsed = parseCustomVocabulary(draftCustomText);
-                    onSaveCustomText(draftCustomText, parsed);
-                    onUpdateConfig({ deckId: 'custom' });
-                    setCustomModalOpen(false);
-                  }}
-                  className="duo-btn-purple px-5 py-2 text-xs"
-                >
-                  Lưu & Chọn Bộ Từ Này
-                </button>
-              </div>
+            {/* Modal Tabs */}
+            <div className="flex gap-2 border-b border-border pb-3">
+              <button
+                type="button"
+                onClick={() => setModalTab('community')}
+                className={`px-4 py-2 rounded-duo text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                  modalTab === 'community'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                <Globe className="h-3.5 w-3.5" />
+                <span>
+                  Kho {commTotal.toLocaleString()}+ Bộ Từ Cộng Đồng Parroto
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalTab('manual')}
+                className={`px-4 py-2 rounded-duo text-xs font-extrabold flex items-center gap-1.5 transition-all ${
+                  modalTab === 'manual'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                }`}
+              >
+                <FilePlus2 className="h-3.5 w-3.5" />
+                <span>Tự Nhập Danh Sách Từ ({customCards.length})</span>
+              </button>
             </div>
+
+            {modalTab === 'community' ? (
+              <div className="flex-1 flex flex-col gap-3 min-h-0 overflow-hidden">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void loadCommunityDecks(commSearch);
+                  }}
+                  className="flex gap-2"
+                >
+                  <div className="relative flex-1">
+                    <Search className="h-4 w-4 text-muted-foreground absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={commSearch}
+                      onChange={(e) => setCommSearch(e.target.value)}
+                      placeholder="Tìm kiếm trong 3,593+ bộ từ Parroto (VD: IELTS, TOEIC, B2, C1, Cam 18, THPT, IT, Y khoa...)"
+                      className="w-full h-10 pl-9 pr-3 rounded-duo border-2 border-border bg-muted/40 text-xs font-semibold focus:border-purple-600 focus:outline-none"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={commLoading}
+                    className="duo-btn-purple px-4 h-10 text-xs shrink-0"
+                  >
+                    {commLoading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Search className="h-3.5 w-3.5" />
+                    )}
+                    <span>Tìm kiếm</span>
+                  </button>
+                </form>
+
+                {/* Quick search tags */}
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    'IELTS',
+                    'TOEIC',
+                    'Oxford',
+                    'B2',
+                    'C1',
+                    'THPT',
+                    'SAT',
+                    'Business',
+                    'Phrasal verb',
+                  ].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => {
+                        setCommSearch(tag);
+                        void loadCommunityDecks(tag);
+                      }}
+                      className="px-2.5 py-1 rounded-full bg-muted hover:bg-purple-500/15 hover:text-purple-600 text-[11px] font-bold transition-colors"
+                    >
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Deck results list */}
+                <div className="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-2.5 pr-1 min-h-[260px]">
+                  {commLoading ? (
+                    <div className="col-span-2 flex flex-col items-center justify-center py-12 gap-2 text-muted-foreground">
+                      <Loader2 className="h-7 w-7 animate-spin text-purple-600" />
+                      <span className="text-xs font-semibold">
+                        Đang tải danh sách bộ từ từ Parroto...
+                      </span>
+                    </div>
+                  ) : commDecks.length === 0 ? (
+                    <div className="col-span-2 flex flex-col items-center justify-center py-12 text-xs text-muted-foreground">
+                      Không tìm thấy bộ từ nào phù hợp. Hãy thử từ khóa khác!
+                    </div>
+                  ) : (
+                    commDecks.map((d) => {
+                      const isImporting = importingDeckId === d._id;
+                      return (
+                        <div
+                          key={d._id}
+                          className="rounded-duo border-2 border-border p-3 flex items-center justify-between gap-3 hover:border-purple-500/40 bg-card"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-xs sm:text-sm truncate">
+                              {d.name}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              <b className="text-purple-600">
+                                {d.total_cards} từ
+                              </b>{' '}
+                              · {d.total_groups} nhóm · {d.study_count || 0}{' '}
+                              lượt học
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={!!importingDeckId}
+                            onClick={() => handleImportCommunityDeck(d)}
+                            className="duo-btn-purple px-3 py-1.5 text-xs shrink-0"
+                          >
+                            {isImporting ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <Download className="h-3.5 w-3.5" />
+                            )}
+                            <span>{isImporting ? 'Đang tải...' : 'Nạp'}</span>
+                          </button>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Mỗi dòng nhập 1 từ theo định dạng:{' '}
+                  <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">
+                    từ_tiếng_Anh | nghĩa_tiếng_Việt | giải_thích | câu_ví_dụ
+                  </code>{' '}
+                  (2 cột cuối không bắt buộc). Khi bạn tạo phòng với bộ từ này,
+                  bạn bè vào phòng sẽ tự động đồng bộ danh sách từ của bạn!
+                </p>
+
+                <textarea
+                  value={draftCustomText}
+                  onChange={(e) => setDraftCustomText(e.target.value)}
+                  rows={9}
+                  placeholder={`resilient | kiên cường, phục hồi nhanh | Có khả năng bật dậy sau khó khăn | She is a very resilient athlete.\nnegotiate | đàm phán, thương lượng | Thảo luận để đạt thỏa thuận | We need to negotiate a better price.`}
+                  className="w-full rounded-duo border-2 border-border bg-muted/30 p-3.5 font-mono text-xs focus:border-purple-600 focus:outline-none flex-1"
+                />
+
+                <div className="flex items-center justify-between pt-2">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    Đã nhận diện:{' '}
+                    <b className="text-purple-600">
+                      {parseCustomVocabulary(draftCustomText).length}
+                    </b>{' '}
+                    từ hợp lệ
+                  </span>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setCustomModalOpen(false)}
+                      className="duo-btn-outline px-4 py-2 text-xs"
+                    >
+                      Đóng
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const parsed = parseCustomVocabulary(draftCustomText);
+                        onSaveCustomText(draftCustomText, parsed);
+                        onUpdateConfig({ deckId: 'custom' });
+                        setCustomModalOpen(false);
+                      }}
+                      className="duo-btn-purple px-5 py-2 text-xs"
+                    >
+                      Lưu & Chọn Bộ Từ Này
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

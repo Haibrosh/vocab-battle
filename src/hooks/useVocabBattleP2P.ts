@@ -17,6 +17,8 @@ import {
 import {
   createInitialMask,
   pickBattleCards,
+  pickBattleCardsAsync,
+  preloadDeck,
   revealNextLetters,
 } from '../data/vocabDecks';
 import { soundManager } from '../utils/sound';
@@ -302,6 +304,7 @@ export function useVocabBattleP2P(
         level: targetCard.level,
         deckId: targetCard.deckId,
         wordMask: initialMask,
+        imageUrl: targetCard.imageUrl,
         translation: targetCard.translation,
         explanation: targetCard.explanation,
         exampleMasked: targetCard.exampleMasked,
@@ -607,12 +610,6 @@ export function useVocabBattleP2P(
 
     clearAllGameTimers();
     const cfg = roomConfigRef.current;
-    const selectedCards = pickBattleCards(
-      cfg.deckId,
-      cfg.totalRounds,
-      customCardsRef.current
-    );
-    battleCardsRef.current = selectedCards;
     matchHistoryRef.current = [];
 
     const resetPlayers = playersRef.current.map((p) => ({ ...p, score: 0 }));
@@ -631,7 +628,16 @@ export function useVocabBattleP2P(
       totalRounds: cfg.totalRounds,
     });
 
-    nextRoundTimerRef.current = window.setTimeout(() => {
+    // Load deck JSON asynchronously during the 2.4s game-start screen
+    const cardsPromise = pickBattleCardsAsync(
+      cfg.deckId,
+      cfg.totalRounds,
+      customCardsRef.current
+    );
+
+    nextRoundTimerRef.current = window.setTimeout(async () => {
+      const selectedCards = await cardsPromise;
+      battleCardsRef.current = selectedCards;
       hostStartRound(0);
     }, 2400);
   }, [clearAllGameTimers, hostStartRound, sendP2P]);
@@ -1127,12 +1133,6 @@ export function useVocabBattleP2P(
       playersRef.current = matchPlayers;
       setPlayers(matchPlayers);
 
-      const selectedCards = pickBattleCards(
-        cfg.deckId,
-        cfg.totalRounds,
-        customCardsRef.current
-      );
-      battleCardsRef.current = selectedCards;
       matchHistoryRef.current = [];
       setTotalRounds(cfg.totalRounds);
       setGameOverData(null);
@@ -1140,12 +1140,25 @@ export function useVocabBattleP2P(
       setState('game-start');
       soundManager.play('notice');
 
-      nextRoundTimerRef.current = window.setTimeout(() => {
+      const cardsPromise = pickBattleCardsAsync(
+        cfg.deckId,
+        cfg.totalRounds,
+        customCardsRef.current
+      );
+
+      nextRoundTimerRef.current = window.setTimeout(async () => {
+        const selectedCards = await cardsPromise;
+        battleCardsRef.current = selectedCards;
         hostStartRound(0);
       }, 2200);
     },
     [cleanupNetwork, hostStartRound]
   );
+
+  // Preload currently selected deck in the background
+  useEffect(() => {
+    preloadDeck(roomConfig.deckId);
+  }, [roomConfig.deckId]);
 
   // Update room configuration (Host only) and sync with Guest
   const updateRoomConfig = useCallback(
@@ -1156,6 +1169,9 @@ export function useVocabBattleP2P(
       };
       setRoomConfig(updated);
       roomConfigRef.current = updated;
+      if (partial.deckId) {
+        preloadDeck(partial.deckId);
+      }
 
       if (isHostRef.current && roomId) {
         sendP2P({

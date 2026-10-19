@@ -235,19 +235,29 @@ export const VocabBattleWaitingRoom: React.FC<VocabBattleWaitingRoomProps> = ({
           {isHost ? (
             <div className="space-y-4">
               {/* Host Deck Selector */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-56 overflow-y-auto pr-1">
                 {DECK_LIST.map((d) => (
                   <button
                     key={d.id}
                     type="button"
                     onClick={() => onUpdateConfig({ deckId: d.id })}
-                    className={`px-3 py-2 rounded-xl border-2 text-xs font-bold text-left truncate transition-all ${
+                    className={`px-3 py-2 rounded-xl border-2 text-xs font-bold text-left flex items-center justify-between gap-1.5 transition-all ${
                       roomConfig.deckId === d.id
                         ? 'border-purple-600 bg-purple-500/15 text-purple-700 dark:text-purple-300'
                         : 'border-border hover:bg-muted'
                     }`}
                   >
-                    {locale === 'vi' ? d.nameVi : d.nameEn}
+                    <span className="truncate flex items-center gap-1.5">
+                      <span>{d.icon}</span>
+                      <span className="truncate">
+                        {locale === 'vi' ? d.nameVi : d.nameEn}
+                      </span>
+                    </span>
+                    {d.cardCount > 0 && (
+                      <span className="text-[10px] opacity-75 shrink-0">
+                        {d.cardCount.toLocaleString()}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>

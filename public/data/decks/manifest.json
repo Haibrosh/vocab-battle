@@ -1,0 +1,156 @@
+{
+  "totalCards": 15397,
+  "uniqueWords": 9978,
+  "decks": [
+    {
+      "id": "common-1000",
+      "nameVi": "1000 Từ Tiếng Anh Thông Dụng",
+      "nameEn": "1000 Common English Words",
+      "descVi": "Bộ 1000 từ vựng tiếng Anh thông dụng nhất trong đời sống hàng ngày từ Parroto",
+      "descEn": "Top 1000 most common English words in everyday life",
+      "badge": "A1 - B1",
+      "color": "from-amber-500 to-orange-500",
+      "count": 934
+    },
+    {
+      "id": "conversation",
+      "nameVi": "Từ Vựng Tiếng Anh Giao Tiếp",
+      "nameEn": "English Conversation Vocabulary",
+      "descVi": "Từ vựng phản xạ giao tiếp thực tế, hội thoại công việc & cuộc sống",
+      "descEn": "Practical English conversation vocabulary for daily life and work",
+      "badge": "A2 - B1",
+      "color": "from-yellow-500 to-amber-500",
+      "count": 708
+    },
+    {
+      "id": "oxford-3000-a1",
+      "nameVi": "Từ Vựng Oxford 3000 (A1)",
+      "nameEn": "Oxford 3000 Vocabulary (A1)",
+      "descVi": "Từ vựng nền tảng Oxford 3000 cấp độ A1 dành cho người mới bắt đầu",
+      "descEn": "Core Oxford 3000 A1 foundation vocabulary",
+      "badge": "A1",
+      "color": "from-emerald-500 to-green-600",
+      "count": 757
+    },
+    {
+      "id": "oxford-3000-a2",
+      "nameVi": "Từ Vựng Oxford 3000 (A2)",
+      "nameEn": "Oxford 3000 Vocabulary (A2)",
+      "descVi": "Từ vựng cốt lõi Oxford 3000 cấp độ sơ trung cấp A2",
+      "descEn": "Core Oxford 3000 A2 elementary-intermediate vocabulary",
+      "badge": "A2",
+      "color": "from-teal-500 to-emerald-600",
+      "count": 827
+    },
+    {
+      "id": "oxford-b1-b2",
+      "nameVi": "Từ Vựng Oxford 3000 (B1 - B2)",
+      "nameEn": "Oxford 3000 Vocabulary (B1 - B2)",
+      "descVi": "Hơn 1,000 từ vựng trung cấp Oxford 3000/5000 trọng tâm B1 - B2",
+      "descEn": "1,000+ intermediate Oxford 3000/5000 B1-B2 vocabulary words",
+      "badge": "B1 - B2",
+      "color": "from-cyan-500 to-blue-600",
+      "count": 1054
+    },
+    {
+      "id": "oxford-c1-c2",
+      "nameVi": "Từ Vựng Oxford 5000 (B2 - C2)",
+      "nameEn": "Oxford 5000 Advanced (B2 - C2)",
+      "descVi": "1,200+ từ vựng nâng cao Oxford 5000 & học thuật chuyên sâu B2 - C2",
+      "descEn": "1,200+ advanced Oxford 5000 & academic C1-C2 words",
+      "badge": "C1 - C2",
+      "color": "from-indigo-600 to-violet-600",
+      "count": 1200
+    },
+    {
+      "id": "toeic-600",
+      "nameVi": "600 Từ Vựng Thiết Yếu TOEIC",
+      "nameEn": "600 Essential Words for TOEIC",
+      "descVi": "Bộ 600 từ vựng TOEIC chính thức của Parroto theo 29 chủ đề thương mại",
+      "descEn": "Official 600 essential TOEIC words across 29 business topics",
+      "badge": "B1 - B2",
+      "color": "from-blue-500 to-indigo-500",
+      "count": 616
+    },
+    {
+      "id": "ets-toeic",
+      "nameVi": "Từ Vựng ETS TOEIC 800 - 900+",
+      "nameEn": "ETS TOEIC 800 - 900+ Vocabulary",
+      "descVi": "Hơn 2,500 từ vựng luyện thi ETS TOEIC thực chiến mục tiêu 800 - 990",
+      "descEn": "2,500+ intensive ETS TOEIC words for 800 - 990 target score",
+      "badge": "B2 - C1",
+      "color": "from-sky-500 to-blue-700",
+      "count": 2158
+    },
+    {
+      "id": "ielts-600",
+      "nameVi": "600 Từ Vựng IELTS Cơ Bản",
+      "nameEn": "600 Essential IELTS Vocabulary",
+      "descVi": "Bộ 600 từ vựng học thuật IELTS nền tảng theo 20 chủ đề trọng tâm",
+      "descEn": "600 core academic IELTS words across 20 essential topics",
+      "badge": "B1 - B2",
+      "color": "from-rose-500 to-pink-600",
+      "count": 596
+    },
+    {
+      "id": "ielts-band-4-5",
+      "nameVi": "Từ Vựng IELTS Band 4.0 - 5.5",
+      "nameEn": "IELTS Band 4.0 - 5.5 Vocabulary",
+      "descVi": "Bộ 2,086 từ vựng IELTS chính thức trên Parroto chia theo 95 nhóm chủ đề",
+      "descEn": "Official 2,086 IELTS Band 4.0 - 5.5 words across 95 topic groups",
+      "badge": "B1 - B2",
+      "color": "from-orange-500 to-red-500",
+      "count": 2086
+    },
+    {
+      "id": "ielts-advanced",
+      "nameVi": "Từ Vựng IELTS Band 6.5 - 8.5+",
+      "nameEn": "IELTS Band 6.5 - 8.5+ Vocabulary",
+      "descVi": "Hơn 2,000 từ vựng IELTS học thuật chuyên sâu cho Reading, Writing & Speaking",
+      "descEn": "2,000+ high-band IELTS academic words for Reading, Writing & Speaking",
+      "badge": "C1 - C2",
+      "color": "from-red-600 to-rose-700",
+      "count": 2048
+    },
+    {
+      "id": "toefl-essential",
+      "nameVi": "Từ Vựng Thiết Yếu Cho TOEFL",
+      "nameEn": "Essential TOEFL Vocabulary",
+      "descVi": "Bộ 529 từ vựng học thuật TOEFL chính thức theo các chủ đề khoa học & xã hội",
+      "descEn": "Official 529 academic TOEFL words across science & humanities",
+      "badge": "B2 - C1",
+      "color": "from-purple-500 to-indigo-600",
+      "count": 526
+    },
+    {
+      "id": "thpt-qg",
+      "nameVi": "Từ Vựng Ôn Thi THPT Quốc Gia",
+      "nameEn": "National High School Exam Vocabulary",
+      "descVi": "Hơn 1,200 từ vựng & cụm từ trọng tâm bám sát đề thi THPT Quốc Gia & HSG",
+      "descEn": "1,200+ core words and phrases for the National High School Exam",
+      "badge": "B1 - B2",
+      "color": "from-fuchsia-500 to-pink-600",
+      "count": 1247
+    },
+    {
+      "id": "sat-c1-c2",
+      "nameVi": "Từ Vựng SAT & Phrasal Verbs C1-C2",
+      "nameEn": "Digital SAT & C1-C2 Mastery",
+      "descVi": "Từ vựng Digital SAT, cụm động từ & từ học thuật C1-C2 độ khó cao",
+      "descEn": "Digital SAT vocabulary, C1-C2 phrasal verbs and advanced words",
+      "badge": "C1 - C2",
+      "color": "from-violet-600 to-purple-800",
+      "count": 542
+    },
+    {
+      "id": "lunar-new-year",
+      "nameVi": "Từ Vựng Tết & Văn Hóa Việt Nam",
+      "nameEn": "Vietnamese Lunar New Year & Culture",
+      "descVi": "Bộ từ vựng chủ đề Tết cổ truyền, phong tục, ẩm thực & văn hóa Việt Nam",
+      "descEn": "Vocabulary about Vietnamese Tet, traditions, cuisine & culture",
+      "badge": "A2 - B2",
+      "color": "from-red-500 to-amber-500",
+      "count": 98
+    }
+  ]
+}

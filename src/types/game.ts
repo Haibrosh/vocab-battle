@@ -1,10 +1,20 @@
 export type DeckId =
   | 'all'
-  | 'ielts'
-  | 'toeic'
-  | 'oxford3000'
-  | 'communication'
-  | 'advanced'
+  | 'common-1000'
+  | 'conversation'
+  | 'oxford-3000-a1'
+  | 'oxford-3000-a2'
+  | 'oxford-b1-b2'
+  | 'oxford-c1-c2'
+  | 'toeic-600'
+  | 'ets-toeic'
+  | 'ielts-600'
+  | 'ielts-band-4-5'
+  | 'ielts-advanced'
+  | 'toefl-essential'
+  | 'thpt-qg'
+  | 'sat-c1-c2'
+  | 'lunar-new-year'
   | 'custom';
 
 export interface PhoneticItem {
@@ -17,8 +27,9 @@ export interface VocabCard {
   cardId: string;
   word: string;
   type: 'noun' | 'verb' | 'adjective' | 'adverb' | 'phrasal verb' | 'idiom';
-  deckId: Exclude<DeckId, 'all'>;
+  deckId: string;
   level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  imageUrl?: string;
   phonetics: PhoneticItem[];
   translation: {
     vi: string;
@@ -40,6 +51,7 @@ export interface PublicRoundCard {
   level: VocabCard['level'];
   deckId: VocabCard['deckId'];
   wordMask: string;
+  imageUrl?: string;
   translation: {
     vi: string;
     en: string;

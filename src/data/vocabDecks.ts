@@ -8,78 +8,206 @@ export interface DeckMeta {
   descEn: string;
   badge: string;
   color: string;
+  icon: string;
+  cardCount: number;
 }
+
+export const TOTAL_PARROTO_CARDS = 15397;
 
 export const DECK_LIST: DeckMeta[] = [
   {
     id: 'all',
-    nameVi: 'Tất Cả Bộ Từ (Tổng Hợp)',
-    nameEn: 'All Decks (Mixed)',
-    descVi: 'Trộn ngẫu nhiên từ tất cả các chủ đề IELTS, TOEIC, Oxford 3000 & Giao tiếp',
-    descEn: 'Randomly mixed from IELTS, TOEIC, Oxford 3000 & Daily Communication',
+    nameVi: 'Tất Cả 15 Bộ Từ (Tổng Hợp)',
+    nameEn: 'All 15 Decks (Mixed 15,397 Words)',
+    descVi: 'Trộn ngẫu nhiên từ kho 15,397 từ vựng IELTS, TOEIC, Oxford 3000/5000, TOEFL, SAT & THPT',
+    descEn: 'Randomly mixed from all 15,397 words across IELTS, TOEIC, Oxford, TOEFL & SAT',
     badge: 'MIXED',
-    color: 'from-purple-500 to-pink-500',
+    color: 'from-purple-600 to-pink-600',
+    icon: '🔥',
+    cardCount: TOTAL_PARROTO_CARDS,
   },
   {
-    id: 'ielts',
-    nameVi: 'IELTS Academic & General',
-    nameEn: 'IELTS Academic & General',
-    descVi: 'Từ vựng học thuật trọng tâm Band 6.5 - 8.5+ thường gặp trong Reading & Writing',
-    descEn: 'Core academic vocabulary for Band 6.5 - 8.5+ in Reading & Writing',
-    badge: 'B2 - C1',
-    color: 'from-rose-500 to-orange-500',
-  },
-  {
-    id: 'toeic',
-    nameVi: 'TOEIC Business & Office',
-    nameEn: 'TOEIC Business & Office',
-    descVi: 'Từ vựng thương mại, công sở, hợp đồng và giao dịch quốc tế 600 - 900+',
-    descEn: 'Business, office, contracts and corporate vocabulary',
-    badge: 'B1 - B2',
-    color: 'from-blue-500 to-cyan-500',
-  },
-  {
-    id: 'oxford3000',
-    nameVi: 'Oxford 3000 Thông Dụng',
-    nameEn: 'Oxford 3000 Core',
-    descVi: '3000 từ vựng cốt lõi quan trọng nhất trong tiếng Anh hiện đại',
-    descEn: 'The most important core words to learn in English',
-    badge: 'A2 - B2',
-    color: 'from-emerald-500 to-teal-500',
-  },
-  {
-    id: 'communication',
-    nameVi: 'Giao Tiếp Hàng Ngày',
-    nameEn: 'Daily Communication',
-    descVi: 'Từ vựng phản xạ giao tiếp đời sống, cảm xúc và tình huống thực tế',
-    descEn: 'Everyday conversation, emotions and real-life situations',
+    id: 'common-1000',
+    nameVi: '1000 Từ Tiếng Anh Thông Dụng',
+    nameEn: '1000 Common English Words',
+    descVi: 'Bộ 1000 từ vựng tiếng Anh thông dụng nhất trong đời sống hàng ngày của Parroto',
+    descEn: 'Top 1000 most common English words in everyday life',
     badge: 'A1 - B1',
-    color: 'from-amber-500 to-yellow-500',
+    color: 'from-amber-500 to-orange-500',
+    icon: '🌟',
+    cardCount: 934,
   },
   {
-    id: 'advanced',
-    nameVi: 'Từ Vựng Nâng Cao (C1-C2)',
-    nameEn: 'Advanced Mastery (C1-C2)',
-    descVi: 'Từ vựng học thuật cao cấp dành cho các trận đấu cân não',
-    descEn: 'High-level vocabulary for intense competitive duels',
+    id: 'conversation',
+    nameVi: 'Từ Vựng Tiếng Anh Giao Tiếp',
+    nameEn: 'English Conversation Vocabulary',
+    descVi: 'Từ vựng phản xạ giao tiếp thực tế, hội thoại công việc & đời sống hàng ngày',
+    descEn: 'Practical English conversation vocabulary for daily life and work',
+    badge: 'A2 - B1',
+    color: 'from-yellow-500 to-amber-500',
+    icon: '💬',
+    cardCount: 708,
+  },
+  {
+    id: 'oxford-3000-a1',
+    nameVi: 'Từ Vựng Oxford 3000 (A1)',
+    nameEn: 'Oxford 3000 Vocabulary (A1)',
+    descVi: 'Từ vựng nền tảng Oxford 3000 cấp độ A1 dành cho mọi trình độ',
+    descEn: 'Core Oxford 3000 A1 foundation vocabulary',
+    badge: 'A1',
+    color: 'from-emerald-500 to-green-600',
+    icon: '📗',
+    cardCount: 757,
+  },
+  {
+    id: 'oxford-3000-a2',
+    nameVi: 'Từ Vựng Oxford 3000 (A2)',
+    nameEn: 'Oxford 3000 Vocabulary (A2)',
+    descVi: 'Từ vựng cốt lõi Oxford 3000 cấp độ sơ trung cấp A2',
+    descEn: 'Core Oxford 3000 A2 elementary-intermediate vocabulary',
+    badge: 'A2',
+    color: 'from-teal-500 to-emerald-600',
+    icon: '📘',
+    cardCount: 827,
+  },
+  {
+    id: 'oxford-b1-b2',
+    nameVi: 'Từ Vựng Oxford 3000 (B1 - B2)',
+    nameEn: 'Oxford 3000 Vocabulary (B1 - B2)',
+    descVi: 'Hơn 1,050 từ vựng trung cấp Oxford 3000/5000 trọng tâm B1 - B2',
+    descEn: '1,050+ intermediate Oxford 3000/5000 B1-B2 vocabulary words',
+    badge: 'B1 - B2',
+    color: 'from-cyan-500 to-blue-600',
+    icon: '📙',
+    cardCount: 1054,
+  },
+  {
+    id: 'oxford-c1-c2',
+    nameVi: 'Từ Vựng Oxford 5000 (B2 - C2)',
+    nameEn: 'Oxford 5000 Advanced (B2 - C2)',
+    descVi: '1,200 từ vựng nâng cao Oxford 5000 & học thuật chuyên sâu B2 - C2',
+    descEn: '1,200 advanced Oxford 5000 & academic C1-C2 words',
     badge: 'C1 - C2',
     color: 'from-indigo-600 to-violet-600',
+    icon: '📕',
+    cardCount: 1200,
+  },
+  {
+    id: 'toeic-600',
+    nameVi: '600 Từ Vựng Thiết Yếu TOEIC',
+    nameEn: '600 Essential Words for TOEIC',
+    descVi: 'Bộ 600 từ vựng TOEIC chính thức của Parroto theo 29 chủ đề thương mại',
+    descEn: 'Official 600 essential TOEIC words across 29 business topics',
+    badge: 'B1 - B2',
+    color: 'from-blue-500 to-indigo-500',
+    icon: '💼',
+    cardCount: 616,
+  },
+  {
+    id: 'ets-toeic',
+    nameVi: 'Từ Vựng ETS TOEIC 800 - 900+',
+    nameEn: 'ETS TOEIC 800 - 900+ Vocabulary',
+    descVi: '2,158 từ vựng luyện thi ETS TOEIC thực chiến mục tiêu 800 - 990',
+    descEn: '2,158 intensive ETS TOEIC words for 800 - 990 target score',
+    badge: 'B2 - C1',
+    color: 'from-sky-500 to-blue-700',
+    icon: '🏢',
+    cardCount: 2158,
+  },
+  {
+    id: 'ielts-600',
+    nameVi: '600 Từ Vựng IELTS Cơ Bản',
+    nameEn: '600 Essential IELTS Vocabulary',
+    descVi: 'Bộ 600 từ vựng học thuật IELTS nền tảng theo 20 chủ đề trọng tâm',
+    descEn: '600 core academic IELTS words across 20 essential topics',
+    badge: 'B1 - B2',
+    color: 'from-rose-500 to-pink-600',
+    icon: '🎓',
+    cardCount: 596,
+  },
+  {
+    id: 'ielts-band-4-5',
+    nameVi: 'Từ Vựng IELTS Band 4.0 - 5.5',
+    nameEn: 'IELTS Band 4.0 - 5.5 Vocabulary',
+    descVi: 'Bộ 2,086 từ vựng IELTS chính thức trên Parroto chia theo 95 nhóm chủ đề',
+    descEn: 'Official 2,086 IELTS Band 4.0 - 5.5 words across 95 topic groups',
+    badge: 'B1 - B2',
+    color: 'from-orange-500 to-red-500',
+    icon: '📝',
+    cardCount: 2086,
+  },
+  {
+    id: 'ielts-advanced',
+    nameVi: 'Từ Vựng IELTS Band 6.5 - 8.5+',
+    nameEn: 'IELTS Band 6.5 - 8.5+ Vocabulary',
+    descVi: '2,048 từ vựng IELTS học thuật chuyên sâu cho Reading, Writing & Speaking',
+    descEn: '2,048 high-band IELTS academic words for Reading, Writing & Speaking',
+    badge: 'C1 - C2',
+    color: 'from-red-600 to-rose-700',
+    icon: '🏆',
+    cardCount: 2048,
+  },
+  {
+    id: 'toefl-essential',
+    nameVi: 'Từ Vựng Thiết Yếu Cho TOEFL',
+    nameEn: 'Essential TOEFL Vocabulary',
+    descVi: 'Bộ 526 từ vựng học thuật TOEFL chính thức theo các chủ đề khoa học & xã hội',
+    descEn: 'Official 526 academic TOEFL words across science & humanities',
+    badge: 'B2 - C1',
+    color: 'from-purple-500 to-indigo-600',
+    icon: '🌎',
+    cardCount: 526,
+  },
+  {
+    id: 'thpt-qg',
+    nameVi: 'Từ Vựng Ôn Thi THPT Quốc Gia',
+    nameEn: 'National High School Exam Vocabulary',
+    descVi: '1,247 từ vựng & cụm từ trọng tâm bám sát đề thi THPT Quốc Gia & HSG',
+    descEn: '1,247 core words and phrases for the National High School Exam',
+    badge: 'B1 - B2',
+    color: 'from-fuchsia-500 to-pink-600',
+    icon: '🏫',
+    cardCount: 1247,
+  },
+  {
+    id: 'sat-c1-c2',
+    nameVi: 'Từ Vựng SAT & Phrasal Verbs C1-C2',
+    nameEn: 'Digital SAT & C1-C2 Mastery',
+    descVi: '542 từ vựng Digital SAT, cụm động từ & từ học thuật C1-C2 độ khó cao',
+    descEn: '542 Digital SAT vocabulary, C1-C2 phrasal verbs and advanced words',
+    badge: 'C1 - C2',
+    color: 'from-violet-600 to-purple-800',
+    icon: '🧠',
+    cardCount: 542,
+  },
+  {
+    id: 'lunar-new-year',
+    nameVi: 'Từ Vựng Tết & Văn Hóa Việt Nam',
+    nameEn: 'Vietnamese Lunar New Year & Culture',
+    descVi: 'Bộ từ vựng chủ đề Tết cổ truyền, phong tục, ẩm thực & văn hóa Việt Nam',
+    descEn: 'Vocabulary about Vietnamese Tet, traditions, cuisine & culture',
+    badge: 'A2 - B2',
+    color: 'from-red-500 to-amber-500',
+    icon: '🧧',
+    cardCount: 98,
   },
   {
     id: 'custom',
-    nameVi: 'Bộ Từ Tự Nhập (Tuỳ Chỉnh)',
-    nameEn: 'Custom Vocabulary Deck',
-    descVi: 'Tự nhập danh sách từ vựng của riêng bạn để thi đấu cùng bạn bè',
-    descEn: 'Import your own word list to battle with your friend',
+    nameVi: 'Bộ Từ Tự Nhập / Cộng Đồng',
+    nameEn: 'Custom / Community Deck',
+    descVi: 'Tự nhập danh sách từ hoặc tải từ kho 3,500+ bộ từ cộng đồng Parroto',
+    descEn: 'Import your own words or pick from 3,500+ Parroto community decks',
     badge: 'CUSTOM',
-    color: 'from-fuchsia-500 to-purple-600',
+    color: 'from-fuchsia-600 to-purple-600',
+    icon: '✨',
+    cardCount: 0,
   },
 ];
 
 interface RawCardSeed {
   w: string;
   t: VocabCard['type'];
-  d: Exclude<DeckId, 'all'>;
+  d: string;
   l: VocabCard['level'];
   ipa: string;
   vi: string;
@@ -1422,29 +1550,114 @@ export function revealNextLetters(word: string, currentMask: string, count = 1):
   return maskChars.join('');
 }
 
-/**
- * Selects and shuffles cards for a battle session.
- */
-export function pickBattleCards(
+const STATIC_DECK_IDS: Exclude<DeckId, 'all' | 'custom'>[] = [
+  'common-1000',
+  'conversation',
+  'oxford-3000-a1',
+  'oxford-3000-a2',
+  'oxford-b1-b2',
+  'oxford-c1-c2',
+  'toeic-600',
+  'ets-toeic',
+  'ielts-600',
+  'ielts-band-4-5',
+  'ielts-advanced',
+  'toefl-essential',
+  'thpt-qg',
+  'sat-c1-c2',
+  'lunar-new-year',
+];
+
+const deckCache = new Map<string, VocabCard[]>();
+const deckLoadingPromises = new Map<string, Promise<VocabCard[]>>();
+
+async function fetchSingleDeckJson(deckId: string): Promise<VocabCard[]> {
+  if (deckCache.has(deckId)) {
+    return deckCache.get(deckId)!;
+  }
+  if (deckLoadingPromises.has(deckId)) {
+    return deckLoadingPromises.get(deckId)!;
+  }
+
+  const promise = fetch(`/data/decks/${deckId}.json`)
+    .then(async (res) => {
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as VocabCard[];
+      if (Array.isArray(data) && data.length > 0) {
+        deckCache.set(deckId, data);
+        return data;
+      }
+      return [];
+    })
+    .catch((err) => {
+      console.warn(`Failed to load deck ${deckId}:`, err);
+      return [];
+    })
+    .finally(() => {
+      deckLoadingPromises.delete(deckId);
+    });
+
+  deckLoadingPromises.set(deckId, promise);
+  return promise;
+}
+
+export function preloadDeck(deckId: DeckId): void {
+  if (typeof window === 'undefined') return;
+  if (deckId === 'custom') return;
+  if (deckId === 'all') {
+    // Preload a diverse mix of decks in the background
+    const shuffledDecks = [...STATIC_DECK_IDS].sort(() => Math.random() - 0.5);
+    shuffledDecks.slice(0, 5).forEach((id) => {
+      void fetchSingleDeckJson(id);
+    });
+    return;
+  }
+  void fetchSingleDeckJson(deckId);
+}
+
+export async function loadDeckCards(
   deckId: DeckId,
-  count: number,
   customCards: VocabCard[] = []
-): VocabCard[] {
-  let pool: VocabCard[] = [];
+): Promise<VocabCard[]> {
   if (deckId === 'custom') {
-    pool = customCards.length > 0 ? [...customCards] : [...BUILTIN_VOCAB_CARDS];
-  } else if (deckId === 'all') {
-    pool = [...BUILTIN_VOCAB_CARDS, ...customCards];
-  } else {
-    pool = BUILTIN_VOCAB_CARDS.filter((c) => c.deckId === deckId);
+    return customCards.length > 0 ? [...customCards] : [...BUILTIN_VOCAB_CARDS];
   }
 
-  if (pool.length === 0) {
-    pool = [...BUILTIN_VOCAB_CARDS];
+  if (deckId === 'all') {
+    // Pick 5 random decks across levels (plus any already cached decks) so 'all' has thousands of words
+    const shuffledDecks = [...STATIC_DECK_IDS].sort(() => Math.random() - 0.5);
+    const targetDecks = shuffledDecks.slice(0, 5);
+    await Promise.all(targetDecks.map((id) => fetchSingleDeckJson(id)));
+
+    const combined: VocabCard[] = [];
+    for (const [, cards] of deckCache.entries()) {
+      combined.push(...cards);
+    }
+    if (customCards.length > 0) {
+      combined.push(...customCards);
+    }
+    return combined.length > 0 ? combined : [...BUILTIN_VOCAB_CARDS];
   }
 
-  // Fisher-Yates shuffle
-  const shuffled = [...pool];
+  const loaded = await fetchSingleDeckJson(deckId);
+  return loaded.length > 0 ? loaded : [...BUILTIN_VOCAB_CARDS];
+}
+
+export function getDeckCardCount(
+  deckId: DeckId,
+  customCards: VocabCard[] = []
+): number {
+  if (deckId === 'custom') return customCards.length;
+  if (deckId === 'all') return TOTAL_PARROTO_CARDS + customCards.length;
+  const cached = deckCache.get(deckId);
+  if (cached && cached.length > 0) return cached.length;
+  const meta = DECK_LIST.find((d) => d.id === deckId);
+  return meta?.cardCount || BUILTIN_VOCAB_CARDS.length;
+}
+
+function shuffleAndPick(pool: VocabCard[], count: number): VocabCard[] {
+  const safePool = pool.length > 0 ? pool : BUILTIN_VOCAB_CARDS;
+  const shuffled = [...safePool];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -1459,6 +1672,38 @@ export function pickBattleCards(
     }
   }
   return result;
+}
+
+export async function pickBattleCardsAsync(
+  deckId: DeckId,
+  count: number,
+  customCards: VocabCard[] = []
+): Promise<VocabCard[]> {
+  const pool = await loadDeckCards(deckId, customCards);
+  return shuffleAndPick(pool, count);
+}
+
+/**
+ * Synchronous fallback card selector (uses cached decks + built-in seed words).
+ */
+export function pickBattleCards(
+  deckId: DeckId,
+  count: number,
+  customCards: VocabCard[] = []
+): VocabCard[] {
+  let pool: VocabCard[] = [];
+  if (deckId === 'custom') {
+    pool = customCards.length > 0 ? [...customCards] : [...BUILTIN_VOCAB_CARDS];
+  } else if (deckId === 'all') {
+    for (const [, cards] of deckCache.entries()) {
+      pool.push(...cards);
+    }
+    pool.push(...BUILTIN_VOCAB_CARDS, ...customCards);
+  } else {
+    pool = deckCache.get(deckId) || BUILTIN_VOCAB_CARDS;
+  }
+
+  return shuffleAndPick(pool, count);
 }
 
 /**
