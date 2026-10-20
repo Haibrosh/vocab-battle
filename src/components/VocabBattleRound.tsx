@@ -47,6 +47,29 @@ interface VocabBattleRoundProps {
   isCardSaved: boolean;
 }
 
+const WRONG_TAUNTS = [
+  'ngu lớm 🤪',
+  'hí ộ 😂',
+  'bựa 🤣',
+  'npc 🤖',
+  'gà thế 🐔',
+  'non và xanh 🌱',
+  'sai bét nhè 🤡',
+  'tay nhanh hơn não 🧠',
+  'ảo ma thế 👻',
+  'chưa học bài à 📚',
+  'lag não à 🫠',
+  'ố dồi ôi 😱',
+];
+
+interface TauntToast {
+  id: number;
+  text: string;
+  answer: string;
+  isOpponent: boolean;
+  playerName: string;
+}
+
 export const VocabBattleRound: React.FC<VocabBattleRoundProps> = ({
   locale,
   userId,
@@ -79,6 +102,9 @@ export const VocabBattleRound: React.FC<VocabBattleRoundProps> = ({
 
   const [youScoredAnim, setYouScoredAnim] = useState(false);
   const [oppScoredAnim, setOppScoredAnim] = useState(false);
+  const [tauntToasts, setTauntToasts] = useState<TauntToast[]>([]);
+  const lastBubbleIdRef = useRef<number>(0);
+  const lastTauntIdxRef = useRef<number>(-1);
 
   const myPlayer = players.find((p) => p.userId === userId);
   const oppPlayer = players.find((p) => p.userId !== userId);
@@ -89,9 +115,41 @@ export const VocabBattleRound: React.FC<VocabBattleRoundProps> = ({
   const oppWonRound = roundWinnerId !== null && roundWinnerId !== userId;
 
   useEffect(() => {
+    if (answerBubbles.length === 0) return;
+    const latest = answerBubbles[answerBubbles.length - 1];
+    if (!latest || latest.id === lastBubbleIdRef.current) return;
+    lastBubbleIdRef.current = latest.id;
+
+    if (!latest.correct) {
+      let idx = Math.floor(Math.random() * WRONG_TAUNTS.length);
+      if (idx === lastTauntIdxRef.current) {
+        idx = (idx + 1) % WRONG_TAUNTS.length;
+      }
+      lastTauntIdxRef.current = idx;
+      const tauntText = WRONG_TAUNTS[idx];
+
+      const newToast: TauntToast = {
+        id: latest.id,
+        text: tauntText,
+        answer: latest.answer,
+        isOpponent: latest.isOpponent,
+        playerName: latest.playerName,
+      };
+      setTauntToasts((prev) => [...prev.slice(-2), newToast]);
+
+      const timer = window.setTimeout(() => {
+        setTauntToasts((prev) => prev.filter((item) => item.id !== latest.id));
+      }, 2200);
+      return () => window.clearTimeout(timer);
+    }
+  }, [answerBubbles]);
+
+  useEffect(() => {
     if (card.cardId && card.cardId !== lastCardIdRef.current) {
       lastCardIdRef.current = card.cardId;
       setInputValue('');
+      setTauntToasts([]);
+      lastBubbleIdRef.current = 0;
       window.setTimeout(() => {
         inputRef.current?.focus();
       }, 60);
@@ -537,6 +595,33 @@ export const VocabBattleRound: React.FC<VocabBattleRoundProps> = ({
         </div>
       </div>
 
+      {/* Floating Wrong Answer Taunt Toasts ("ngu lớm", "hí ộ", "bựa", "npc"...) */}
+      {!showResult && tauntToasts.length > 0 && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-1.5 pointer-events-none w-full max-w-md px-4">
+          {tauntToasts.map((toast) => (
+            <div
+              key={toast.id}
+              className={`px-4 py-1.5 rounded-full border-2 shadow-lg text-xs sm:text-sm font-extrabold flex items-center gap-2 animate-bounce ${
+                toast.isOpponent
+                  ? 'bg-pink-600 text-white border-pink-300'
+                  : 'bg-red-600 text-white border-amber-300'
+              }`}
+            >
+              <span>{toast.isOpponent ? '👀' : '💀'}</span>
+              <span className="opacity-90 font-semibold">
+                {toast.isOpponent ? `${toast.playerName}:` : 'Sai rồi:'}
+              </span>
+              <span className="underline decoration-white/60">
+                "{toast.answer}"
+              </span>
+              <span className="bg-black/25 px-2 py-0.5 rounded-full text-amber-200 uppercase tracking-wide">
+                {toast.text}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Fixed Bottom Answer Input Bar + Real-time Answer Bubbles */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t-2 border-border">
         <div className="container mx-auto max-w-3xl px-4 py-3">
@@ -574,13 +659,20 @@ export const VocabBattleRound: React.FC<VocabBattleRoundProps> = ({
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border border-green-300'
                           : b.isOpponent
                           ? 'bg-pink-100/80 text-pink-700 dark:bg-pink-950/40 dark:text-pink-300 border border-pink-200 dark:border-pink-800'
-                          : 'bg-muted text-muted-foreground border border-border'
+                          : 'bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300 border border-red-200 dark:border-red-800'
                       }`}
                     >
                       <span className="text-[10px] opacity-75 font-bold">
                         {b.isOpponent ? opponent.displayName : 'Bạn'}:
                       </span>
-                      <span>{b.answer}</span>
+                      <span className={!b.correct ? 'line-through opacity-80' : ''}>
+                        {b.answer}
+                      </span>
+                      {!b.correct && (
+                        <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full bg-red-500/15 text-red-600 dark:text-red-300">
+                          {WRONG_TAUNTS[b.id % WRONG_TAUNTS.length]}
+                        </span>
+                      )}
                     </span>
                   ))}
                 </div>

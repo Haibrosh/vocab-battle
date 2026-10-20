@@ -16,15 +16,36 @@ import {
 } from '../types/game';
 import {
   createInitialMask,
-  pickBattleCards,
   pickBattleCardsAsync,
   preloadDeck,
   revealNextLetters,
 } from '../data/vocabDecks';
+import { MultiBrokerRoomRelay } from '../utils/mqttRelay';
 import { soundManager } from '../utils/sound';
 
 const PEER_PREFIX = 'parroto-vb-p2p-';
 const BC_PREFIX = 'parroto-vb-bc-';
+
+const ICE_SERVERS: RTCIceServer[] = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+];
 
 interface Envelope {
   _msgId: string;
@@ -85,8 +106,12 @@ export function useVocabBattleP2P(
   const peerRef = useRef<Peer | null>(null);
   const connRef = useRef<DataConnection | null>(null);
   const bcRef = useRef<BroadcastChannel | null>(null);
+  const mqttRef = useRef<MultiBrokerRoomRelay | null>(null);
+  const joinRetryIntervalRef = useRef<number | null>(null);
   const seenMsgIdsRef = useRef<Set<string>>(new Set());
 
+  const roomIdRef = useRef<string | null>(roomId);
+  roomIdRef.current = roomId;
   const stateRef = useRef<GameState>(state);
   stateRef.current = state;
   const isHostRef = useRef<boolean>(isHost);
@@ -136,6 +161,10 @@ export function useVocabBattleP2P(
 
   const cleanupNetwork = useCallback(() => {
     clearAllGameTimers();
+    if (joinRetryIntervalRef.current) {
+      window.clearInterval(joinRetryIntervalRef.current);
+      joinRetryIntervalRef.current = null;
+    }
     if (pingIntervalRef.current) {
       window.clearInterval(pingIntervalRef.current);
       pingIntervalRef.current = null;
@@ -155,6 +184,14 @@ export function useVocabBattleP2P(
         // ignore
       }
       peerRef.current = null;
+    }
+    if (mqttRef.current) {
+      try {
+        mqttRef.current.close();
+      } catch {
+        // ignore
+      }
+      mqttRef.current = null;
     }
     if (bcRef.current) {
       try {
@@ -178,6 +215,13 @@ export function useVocabBattleP2P(
     if (connRef.current && connRef.current.open) {
       try {
         connRef.current.send(env);
+      } catch {
+        // ignore
+      }
+    }
+    if (mqttRef.current) {
+      try {
+        mqttRef.current.send(env);
       } catch {
         // ignore
       }
@@ -673,6 +717,9 @@ export function useVocabBattleP2P(
             });
             return;
           }
+          const alreadyJoined = playersRef.current.some(
+            (p) => p.userId === msg.player.userId
+          );
           const hostPlayer: PlayerInfo = {
             userId: currentUserRef.current.userId,
             displayName: currentUserRef.current.displayName,
@@ -689,11 +736,14 @@ export function useVocabBattleP2P(
           playersRef.current = updatedPlayers;
           setPlayers(updatedPlayers);
           setIsConnectedP2P(true);
-          soundManager.play('notice');
+          startPingLoop();
+          if (!alreadyJoined) {
+            soundManager.play('notice');
+          }
 
           sendP2P({
             type: 'ROOM_SYNC',
-            roomId: roomId || '',
+            roomId: roomIdRef.current || '',
             config: roomConfigRef.current,
             players: updatedPlayers,
             customCards:
@@ -704,6 +754,10 @@ export function useVocabBattleP2P(
           break;
         }
         case 'JOIN_REJECTED': {
+          if (joinRetryIntervalRef.current) {
+            window.clearInterval(joinRetryIntervalRef.current);
+            joinRetryIntervalRef.current = null;
+          }
           setError(msg.reason);
           setIsConnecting(false);
           cleanupNetwork();
@@ -711,12 +765,20 @@ export function useVocabBattleP2P(
           break;
         }
         case 'ROOM_SYNC': {
+          if (joinRetryIntervalRef.current) {
+            window.clearInterval(joinRetryIntervalRef.current);
+            joinRetryIntervalRef.current = null;
+          }
           setIsConnecting(false);
           setIsConnectedP2P(true);
           setRoomConfig(msg.config);
           roomConfigRef.current = msg.config;
+          if (msg.customCards && msg.customCards.length > 0) {
+            customCardsRef.current = msg.customCards;
+          }
           setPlayers(msg.players);
           playersRef.current = msg.players;
+          startPingLoop();
           if (stateRef.current === 'idle') {
             setState('room-waiting');
             soundManager.play('notice');
@@ -872,8 +934,22 @@ export function useVocabBattleP2P(
           break;
         }
         case 'QUIT_MATCH': {
-          if (isHostRef.current) {
+          if (stateRef.current === 'room-waiting') {
+            if (isHostRef.current) {
+              const hostOnly = playersRef.current.filter((p) => p.isHost);
+              setPlayers(hostOnly);
+              playersRef.current = hostOnly;
+            } else {
+              setError('Chủ phòng đã đóng phòng.');
+              cleanupNetwork();
+              setState('idle');
+            }
+          } else if (isHostRef.current) {
             hostFinishGame('player_quit', msg.playerId);
+          } else if (stateRef.current !== 'idle' && stateRef.current !== 'game-over') {
+            setError('Chủ phòng đã thoát trận đấu.');
+            cleanupNetwork();
+            setState('idle');
           }
           break;
         }
@@ -885,7 +961,6 @@ export function useVocabBattleP2P(
       handleHostEvaluateAnswer,
       hostFinishGame,
       onStatsUpdate,
-      roomId,
       sendP2P,
       startLocalCountdown,
       startMatch,
@@ -932,6 +1007,7 @@ export function useVocabBattleP2P(
       setRoomConfig(mergedConfig);
       roomConfigRef.current = mergedConfig;
       setRoomId(code);
+      roomIdRef.current = code;
       setIsHost(true);
       isHostRef.current = true;
 
@@ -946,17 +1022,22 @@ export function useVocabBattleP2P(
       playersRef.current = [hostPlayer];
       setState('room-waiting');
 
-      // Setup BroadcastChannel for instant local/same-browser connection
+      // 1. Setup BroadcastChannel for instant local/same-browser connection
       setupBroadcastChannel(code);
 
-      // Setup PeerJS WebRTC Host
+      // 2. Setup Multi-Broker WSS Relay (100% NAT/Firewall/4G/5G proof)
+      mqttRef.current = new MultiBrokerRoomRelay(
+        code,
+        (data) => handleIncomingRef.current(data as Envelope),
+        () => {
+          setIsConnecting(false);
+        }
+      );
+
+      // 3. Setup PeerJS WebRTC Host with STUN + Public TURN servers
       const peer = new Peer(`${PEER_PREFIX}${code}`, {
         config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-          ],
+          iceServers: ICE_SERVERS,
         },
       });
       peerRef.current = peer;
@@ -975,30 +1056,18 @@ export function useVocabBattleP2P(
           handleIncomingRef.current(data as Envelope);
         });
         conn.on('close', () => {
-          setIsConnectedP2P(false);
-          if (
-            stateRef.current === 'playing' ||
-            stateRef.current === 'round-result' ||
-            stateRef.current === 'game-start'
-          ) {
-            const guest = playersRef.current.find((p) => !p.isHost);
-            if (guest) {
-              hostFinishGame('player_disconnected', guest.userId);
-            }
-          } else if (stateRef.current === 'room-waiting') {
-            const hostOnly = playersRef.current.filter((p) => p.isHost);
-            setPlayers(hostOnly);
-            playersRef.current = hostOnly;
+          // Only treat as disconnect if MQTT relay is not active
+          if (!mqttRef.current) {
+            setIsConnectedP2P(false);
           }
         });
       });
 
       peer.on('error', () => {
-        // Even if PeerJS public broker has a hiccup, BroadcastChannel works locally
         setIsConnecting(false);
       });
     },
-    [cleanupNetwork, hostFinishGame, setupBroadcastChannel, startPingLoop]
+    [cleanupNetwork, setupBroadcastChannel, startPingLoop]
   );
 
   // Join an existing P2P Room as Guest
@@ -1012,6 +1081,7 @@ export function useVocabBattleP2P(
       setIsConnecting(true);
       setIsBotMatch(false);
       setRoomId(code);
+      roomIdRef.current = code;
       setIsHost(false);
       isHostRef.current = false;
 
@@ -1023,25 +1093,46 @@ export function useVocabBattleP2P(
         isHost: false,
       };
 
-      // 1. Setup BroadcastChannel fast-path (works immediately if on same browser)
-      setupBroadcastChannel(code);
-      window.setTimeout(() => {
+      const sendJoinPacket = () => {
+        if (stateRef.current !== 'idle') return;
         sendP2P({
           type: 'JOIN_REQUEST',
           player: guestPlayer,
           password,
         });
-        startPingLoop();
-      }, 80);
+      };
 
-      // 2. Setup PeerJS WebRTC connection (works across any two devices/networks)
+      // 1. Setup BroadcastChannel fast-path (works immediately if on same browser)
+      setupBroadcastChannel(code);
+      window.setTimeout(() => {
+        sendJoinPacket();
+      }, 60);
+
+      // 2. Setup Multi-Broker WSS Relay (works across ANY network, CGNAT, 4G/5G)
+      mqttRef.current = new MultiBrokerRoomRelay(
+        code,
+        (data) => handleIncomingRef.current(data as Envelope),
+        () => {
+          sendJoinPacket();
+        }
+      );
+
+      // Periodically retry JOIN_REQUEST until ROOM_SYNC arrives
+      joinRetryIntervalRef.current = window.setInterval(() => {
+        if (stateRef.current !== 'idle') {
+          if (joinRetryIntervalRef.current) {
+            window.clearInterval(joinRetryIntervalRef.current);
+            joinRetryIntervalRef.current = null;
+          }
+          return;
+        }
+        sendJoinPacket();
+      }, 1100);
+
+      // 3. Setup PeerJS WebRTC connection with STUN + Public TURN servers
       const peer = new Peer({
         config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-          ],
+          iceServers: ICE_SERVERS,
         },
       });
       peerRef.current = peer;
@@ -1054,7 +1145,7 @@ export function useVocabBattleP2P(
           );
           cleanupNetwork();
         }
-      }, 9000);
+      }, 12000);
 
       peer.on('open', () => {
         const conn = peer.connect(`${PEER_PREFIX}${code}`, {
@@ -1065,11 +1156,7 @@ export function useVocabBattleP2P(
         conn.on('open', () => {
           window.clearTimeout(connectTimeout);
           setIsConnectedP2P(true);
-          sendP2P({
-            type: 'JOIN_REQUEST',
-            player: guestPlayer,
-            password,
-          });
+          sendJoinPacket();
           startPingLoop();
         });
 
@@ -1077,19 +1164,10 @@ export function useVocabBattleP2P(
           window.clearTimeout(connectTimeout);
           handleIncomingRef.current(data as Envelope);
         });
-
-        conn.on('close', () => {
-          setIsConnectedP2P(false);
-          if (stateRef.current !== 'idle' && stateRef.current !== 'game-over') {
-            setError('Chủ phòng đã ngắt kết nối.');
-            cleanupNetwork();
-            setState('idle');
-          }
-        });
       });
 
       peer.on('error', () => {
-        // Wait for connectTimeout unless BroadcastChannel already succeeded
+        // Wait for MultiBrokerRoomRelay / BroadcastChannel unless connectTimeout expires
       });
     },
     [cleanupNetwork, sendP2P, setupBroadcastChannel, startPingLoop]
@@ -1273,15 +1351,19 @@ export function useVocabBattleP2P(
 
   // Leave room completely back to Lobby
   const leaveRoom = useCallback(() => {
+    if (!isBotMatchRef.current && stateRef.current !== 'idle') {
+      sendP2P({ type: 'QUIT_MATCH', playerId: currentUserRef.current.userId });
+    }
     cleanupNetwork();
     setRoomId(null);
+    roomIdRef.current = null;
     setIsHost(false);
     setIsBotMatch(false);
     setPlayers([]);
     setGameOverData(null);
     setRematchState('idle');
     setState('idle');
-  }, [cleanupNetwork]);
+  }, [cleanupNetwork, sendP2P]);
 
   useEffect(() => {
     return () => {
